@@ -1,6 +1,9 @@
 from aiogram import F, Router
 from aiogram.enums import ChatAction
 from aiogram.filters import Command, CommandObject, CommandStart
+# fsm
+from aiogram.fsm.context import FSMContext
+from aiogram.fsm.state import State, StatesGroup
 from aiogram.types import CallbackQuery, Message
 
 import app.builders as bld
@@ -15,9 +18,10 @@ async def cmd_start(message: Message, command: CommandObject):  # Команда
     await message.reply('Hello!', reply_markup=kb.main)
     await message.answer('How are you?')
     await message.answer(f'Hello! You came from {command.args}')
-    #await message.bot.send_message(chat_id=123, text='123')  # Первым аргументом указан получатель
+    # await message.bot.send_message(chat_id=123, text='123')  # Первым аргументом указан получатель
 
 
+'''
 @router.message(F.photo)
 async def get_photo(message: Message):
     """Send id of photo"""
@@ -26,6 +30,7 @@ async def get_photo(message: Message):
         chat_id=message.from_user.id,  # Обязательно нужно указать этот параметр
         action=ChatAction.UPLOAD_PHOTO  # action для отображения процесса загрузки какого-то действия
     )
+'''
 
 
 @router.message(Command('help'))
@@ -70,3 +75,40 @@ async def basket(callback: CallbackQuery):
 @router.message(Command('gb'))
 async def get_keyboard_builder(message: Message):
     await message.answer('Keyboard builder:', reply_markup=bld.get_brands())
+
+
+class Reg(StatesGroup):
+    """Далее прописываются состояния(этапы) которые должен пройти пользователь"""
+    name = State()
+    number = State()
+    photo = State()
+
+
+@router.message(Command('fsm'))
+async def fsm_handler(message: Message, state: FSMContext):
+    await state.set_state(Reg.name)  # Установка состояния Reg.name
+    await message.answer(f'Hello! Enter your name')
+
+
+@router.message(Reg.name)  # Ловим состояние name
+async def reg_name(message: Message, state: FSMContext):
+    await state.update_data(name=message.text)  # Поместить информацию в ячейку
+    await state.set_state(Reg.number)
+    await message.answer('Send your phone number')
+
+
+@router.message(Reg.number)  # Ловим состояние number
+async def reg_number(message: Message, state: FSMContext):
+    await state.update_data(number=message.text)  # Поместить информацию в ячейку
+    await state.set_state(Reg.photo)
+    await message.answer('Send your photo')
+
+
+@router.message(Reg.photo)  # Ловим состояние photo
+async def reg_photo(message: Message, state: FSMContext):
+    await state.update_data(photo=message.photo[-1].file_id)  # Поместить информацию в ячейку
+    data = await state.get_data()  # Получить данные
+    await message.answer_photo(photo=data['photo'],
+                               caption=f'about you:\n'
+                                       f'name: {data["name"]} | phone number: {data["number"]}')
+    await state.clear()  # Очистка состояний
