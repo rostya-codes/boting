@@ -3,6 +3,7 @@ from aiogram.enums import ChatAction
 from aiogram.filters import Command, CommandObject, CommandStart
 from aiogram.types import CallbackQuery, Message
 
+import app.builders as bld
 import app.keyboards as kb
 
 router = Router()
@@ -64,3 +65,8 @@ async def basket(message: Message):
 async def basket(callback: CallbackQuery):
     await callback.answer('You selected basket', show_alert=True)
     await callback.message.answer('Your cart is empty!')
+
+
+@router.message(Command('gb'))
+async def get_keyboard_builder(message: Message):
+    await message.answer('Keyboard builder:', reply_markup=bld.get_brands())
