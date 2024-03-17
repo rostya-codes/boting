@@ -1,9 +1,9 @@
-from aiogram import F, Router
+from aiogram import Bot, F, Router
 from aiogram.enums import ChatAction
 from aiogram.filters import Command, CommandObject, CommandStart
 # fsm
 from aiogram.fsm.context import FSMContext
-from aiogram.types import CallbackQuery, Message
+from aiogram.types import CallbackQuery, ContentType, Message
 
 import app.builders as bld
 import app.keyboards as kb
@@ -28,7 +28,6 @@ async def get_user_id(message: Message):
     await message.answer(f'Your user tg id: {message.from_user.id}')
 
 
-'''
 @router.message(F.photo)
 async def get_photo(message: Message):
     """Send id of photo"""
@@ -37,7 +36,6 @@ async def get_photo(message: Message):
         chat_id=message.from_user.id,  # Обязательно нужно указать этот параметр
         action=ChatAction.UPLOAD_PHOTO  # action для отображения процесса загрузки какого-то действия
     )
-'''
 
 
 @router.message(Command('help'))
@@ -112,6 +110,27 @@ async def reg_photo(message: Message, state: FSMContext):
                                caption=f'about you:\n'
                                        f'name: {data["name"]} | phone number: {data["number"]}')
     await state.clear()  # Очистка состояний
+
+
+@router.message(Command('webapp'))
+async def webapp_handler(message: Message):
+    await message.answer('Opening youtube..', reply_markup=kb.open_youtube)
+
+
+'''
+@router.message(content_types=ContentType.DOCUMENT)
+async def audio_handler(message: Message, bot: Bot):
+    file_id = message.document.file_id
+    photo_id = message.photo[-1].file_id
+    file = await bot.get_file(file_id)
+    file_path = file.file_path
+    await bot.download_file(file_path, 'file.txt')
+    # 2-cond way
+    document = message.document
+    await bot.download(document)
+    #or
+    await bot.download(message.document)
+'''
 
 
 @admin.message(AdminProtect(), Command('apanel'))

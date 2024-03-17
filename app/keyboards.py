@@ -1,5 +1,5 @@
 from aiogram.types import (InlineKeyboardButton, InlineKeyboardMarkup,
-                           KeyboardButton, ReplyKeyboardMarkup)
+                           KeyboardButton, ReplyKeyboardMarkup, WebAppInfo)
 
 main = ReplyKeyboardMarkup(keyboard=[
     # 👇 1 список = 1 ряд
@@ -28,4 +28,10 @@ inline_main = InlineKeyboardMarkup(inline_keyboard=[
     [
         InlineKeyboardButton(text='Contacts', callback_data='contacts')
     ],
+])
+
+open_youtube = InlineKeyboardMarkup(inline_keyboard=[
+    [
+        InlineKeyboardButton(text='Open YouTube', web_app=WebAppInfo(url='https://youtube.com'))
+    ]
 ])
