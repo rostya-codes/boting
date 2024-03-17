@@ -1,9 +1,11 @@
+import logging
+
 from aiogram import Bot, F, Router
 from aiogram.enums import ChatAction
 from aiogram.filters import Command, CommandObject, CommandStart
-# fsm
 from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, ContentType, Message
+from aiogram.types.error_event import ErrorEvent
 
 import app.builders as bld
 import app.keyboards as kb
@@ -12,6 +14,10 @@ from app.states import Reg
 
 admin = Router()
 router = Router()
+
+
+# Создание логгера
+logger = logging.getLogger(__name__)
 
 
 @router.message(CommandStart(deep_link=True, magic=F.args.isdigit()))  # Сообщение об ошибке не будет выводиться
@@ -136,3 +142,8 @@ async def audio_handler(message: Message, bot: Bot):
 @admin.message(AdminProtect(), Command('apanel'))
 async def apanel_handler(message: Message):
     await message.answer('It\'s admin panel')
+
+
+@router.error()
+async def error_handler(event: ErrorEvent):
+    logger.critical('Critical error: %s', event.exception, exc_info=True)
