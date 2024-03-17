@@ -3,12 +3,14 @@ from aiogram.enums import ChatAction
 from aiogram.filters import Command, CommandObject, CommandStart
 # fsm
 from aiogram.fsm.context import FSMContext
-from aiogram.fsm.state import State, StatesGroup
 from aiogram.types import CallbackQuery, Message
 
 import app.builders as bld
 import app.keyboards as kb
+from app.middlewares import AdminProtect
+from app.states import Reg
 
+admin = Router()
 router = Router()
 
 
@@ -19,6 +21,11 @@ async def cmd_start(message: Message, command: CommandObject):  # Команда
     await message.answer('How are you?')
     await message.answer(f'Hello! You came from {command.args}')
     # await message.bot.send_message(chat_id=123, text='123')  # Первым аргументом указан получатель
+
+
+@router.message(Command('id'))
+async def get_user_id(message: Message):
+    await message.answer(f'Your user tg id: {message.from_user.id}')
 
 
 '''
@@ -77,13 +84,6 @@ async def get_keyboard_builder(message: Message):
     await message.answer('Keyboard builder:', reply_markup=bld.get_brands())
 
 
-class Reg(StatesGroup):
-    """Далее прописываются состояния(этапы) которые должен пройти пользователь"""
-    name = State()
-    number = State()
-    photo = State()
-
-
 @router.message(Command('fsm'))
 async def fsm_handler(message: Message, state: FSMContext):
     await state.set_state(Reg.name)  # Установка состояния Reg.name
@@ -112,3 +112,8 @@ async def reg_photo(message: Message, state: FSMContext):
                                caption=f'about you:\n'
                                        f'name: {data["name"]} | phone number: {data["number"]}')
     await state.clear()  # Очистка состояний
+
+
+@admin.message(AdminProtect(), Command('apanel'))
+async def apanel_handler(message: Message):
+    await message.answer('It\'s admin panel')
